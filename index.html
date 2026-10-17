@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phóng Viên Điều Tra Nhí – Toán Lớp 4</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font: Inter & Nunito -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti for Completion Animation -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 100%);
+            min-height: 100vh;
+        }
+        .custom-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col min-h-screen">
+
+    <header class="bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-500 text-white shadow-lg py-4 px-6 mb-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-400 text-blue-900 p-3 rounded-2xl shadow-md text-2xl font-black">
+                    🕵️‍♂️
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-black tracking-wide drop-shadow">
+                        PHÓNG VIÊN ĐIỀU TRA NHÍ
+                    </h1>
+                    <p class="text-blue-100 text-sm md:text-base font-medium">
+                        Cùng quan sát, thu thập dữ kiện và giải mã bài toán nhà máy khẩu trang!
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20">
+                    <span class="text-amber-300 font-bold text-lg">🏆 Tiến độ:</span>
+                    <span id="progress-text" class="font-black text-lg">0 / 5 Nhiệm vụ</span>
+                </div>
+                <button id="btn-reset-all" title="Làm lại từ đầu" class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-3 py-2 rounded-xl text-sm transition flex items-center gap-1 shadow">
+                    <span>🔄</span> Làm lại
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 w-full flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+        
+        <!-- Left Column: Video & Controls (7 Cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-4">
+            <div class="bg-white rounded-3xl p-5 custom-shadow border border-slate-100 flex flex-col h-full">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-lg font-bold text-blue-900 flex items-center gap-2">
+                        <span>📹</span> Băng Hình Hiện Trường
+                    </h2>
+                    <span id="video-status-badge" class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold tracking-wider uppercase">
+                        Chờ bấm bắt đầu
+                    </span>
+                </div>
+
+                <!-- Video Container -->
+                <div class="relative w-full aspect-video bg-slate-900 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center group">
+                    <video id="investigation-video" class="w-full h-full object-cover" controlslist="nodownload nofullscreen noremoteplayback" disablepictureinpicture>
+                        <source src="video_nha_may_san_xuat_khau_trang.mp4" type="video/mp4">
+                        Trình duyệt của bạn không hỗ trợ thẻ video. Vui lòng sử dụng Chrome hoặc Edge.
+                    </video>
+
+                    <!-- Fallback / Error message overlay if video missing -->
+                    <div id="video-error-overlay" class="absolute inset-0 bg-slate-900/90 text-white flex flex-col items-center justify-center p-6 text-center hidden">
+                        <span class="text-4xl mb-2">⚠️</span>
+                        <h3 class="font-bold text-lg mb-1">Không tìm thấy tệp video</h3>
+                        <p class="text-sm text-slate-300 max-w-md">
+                            Tệp <code class="bg-slate-800 px-2 py-0.5 rounded text-amber-300">video_nha_may_san_xuat_khau_trang.mp4</code> chưa được đặt cùng thư mục hoặc trình duyệt gặp lỗi tải. Bạn vẫn có thể trả lời các câu hỏi điều tra dưới đây!
+                        </p>
+                    </div>
+
+                    <!-- Custom Play Shield overlay before start -->
+                    <div id="video-start-overlay" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center transition-all">
+                        <div class="w-20 h-20 bg-amber-500 rounded-full flex items-center justify-center text-white text-3xl shadow-xl mb-4 animate-bounce">
+                            ▶
+                        </div>
+                        <h3 class="text-white text-xl font-black mb-2">Sẵn sàng nhập cuộc điều tra?</h3>
+                        <p class="text-slate-200 text-sm max-w-sm mb-5">
+                            Bấm nút bên dưới để mở băng hình. Băng hình sẽ tự động dừng tại các mốc quan trọng để em làm nhiệm vụ!
+                        </p>
+                        <button id="btn-start-video" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black px-8 py-3.5 rounded-2xl shadow-lg transform transition hover:scale-105 active:scale-95 flex items-center gap-2 text-lg">
+                            <span>🚀</span> BẮT ĐẦU ĐIỀU TRA
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Video Action Buttons -->
+                <div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-slate-100">
+                    <button id="btn-replay-video" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-sm">
+                        <span>🔄</span> XEM LẠI VIDEO TỪ ĐẦU
+                    </button>
+                    <div class="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                        <span>💡</span> Băng hình sẽ tự khóa khi đến mốc câu hỏi.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Reporter Notebook & Questions (5 Cols) -->
+        <section class="lg:col-span-5 flex flex-col">
+            <div class="bg-white rounded-3xl p-5 custom-shadow border border-amber-100 flex flex-col h-full relative overflow-hidden">
+                <!-- Notebook header badge -->
+                <div class="absolute -right-8 -top-8 w-28 h-28 bg-amber-100/60 rounded-full pointer-events-none"></div>
+                
+                <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                    <h2 class="text-lg font-black text-amber-800 flex items-center gap-2">
+                        <span>📓</span> SỔ TAY PHÓNG VIÊN ĐIỀU TRA
+                    </h2>
+                    <span id="current-quest-badge" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-black">
+                        Nhiệm vụ 1/5
+                    </span>
+                </div>
+
+                <!-- Quest Navigation Tabs -->
+                <div class="grid grid-cols-5 gap-1.5 mb-5 bg-slate-50 p-1.5 rounded-2xl border border-slate-200/60" id="quest-tabs">
+                    <!-- Tabs populated by JS -->
+                </div>
+
+                <!-- Active Question Container -->
+                <div id="question-container" class="flex-grow flex flex-col justify-between">
+                    <!-- Question card content filled dynamically -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="completion-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-8 custom-shadow text-center relative overflow-hidden border-4 border-amber-400 animate-fade-in">
+            <div class="absolute -top-10 -left-10 w-32 h-32 bg-amber-200/50 rounded-full blur-xl"></div>
+            <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-blue-200/50 rounded-full blur-xl"></div>
+            
+            <div class="relative z-10">
+                <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-tr from-amber-400 to-yellow-300 rounded-full text-5xl shadow-lg mb-6 animate-bounce">
+                    🏅
+                </div>
+                
+                <h2 class="text-2xl md:text-3xl font-black text-blue-900 uppercase tracking-wide mb-3">
+                    CHÚC MỪNG CÁC EM ĐÃ HOÀN THÀNH
+                </h2>
+                
+                <p class="text-slate-600 font-medium text-base mb-8 leading-relaxed">
+                    “Các phóng viên nhí đã hoàn thành nhiệm vụ điều tra toán học! Chúc mừng các em đã nổ lực quan sát, suy luận và giải quyết bài toán!”
+                </p>
+
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <button id="btn-modal-replay" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3.5 rounded-2xl shadow-lg transition flex items-center justify-center gap-2">
+                        <span>🔄</span> Xem Lại Video & Bài Làm
+                    </button>
+                    <button id="btn-modal-close" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-6 py-3.5 rounded-2xl transition">
+                        Đóng Hộp Thoại
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Reset Modal -->
+    <div id="reset-confirm-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 custom-shadow text-center border border-slate-100">
+            <div class="text-4xl mb-3">🔄</div>
+            <h3 class="font-black text-xl text-slate-800 mb-2">Làm lại từ đầu?</h3>
+            <p class="text-slate-600 text-sm mb-6">Mọi câu trả lời và tiến độ hiện tại sẽ bị xóa sạch để em bắt đầu lại cuộc điều tra mới. Em có chắc chắn không?</p>
+            <div class="flex gap-3">
+                <button id="btn-cancel-reset" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition">
+                    Hủy
+                </button>
+                <button id="btn-confirm-reset" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl transition shadow">
+                    Đồng ý làm lại
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="message-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 custom-shadow text-center border border-slate-100">
+            <div id="msg-icon" class="text-4xl mb-3">💬</div>
+            <h3 id="msg-title" class="font-black text-xl text-slate-800 mb-2">Thông báo</h3>
+            <p id="msg-content" class="text-slate-600 text-sm mb-6"></p>
+            <button id="msg-btn-ok" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow">
+                Đã hiểu
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Data definitions for 5 questions and video timestamps (no sample hints/answers in placeholders)
+        const questionsData = [
+            {
+                id: 1,
+                timestamp: 8, // 00:00:08
+                title: "Nhiệm vụ 1",
+                question: "Bài toán cho biết những gì? Bài toán hỏi gì?",
+                placeholder: "Nhập câu trả lời của em...",
+                hint: "Em hãy xác định số khẩu trang nhà máy sản xuất trong một ngày, số ngày được nêu và điều bài toán yêu cầu tìm.",
+                validator: (ans) => {
+                    const text = ans.toLowerCase();
+                    const hasNumber1 = text.includes("160.140") || text.includes("160140") || text.includes("160 140");
+                    const hasNumber7 = text.includes("7");
+                    const hasKeywordAsk = text.includes("hỏi") || text.includes("tổng") || text.includes("bao nhiêu") || text.includes("sản xuất");
+                    return (hasNumber1 && hasNumber7) || (hasNumber1 && hasKeywordAsk) || (text.length > 25 && (text.includes("160") || text.includes("7")));
+                }
+            },
+            {
+                id: 2,
+                timestamp: 9, // 00:00:09
+                title: "Nhiệm vụ 2",
+                question: "Em hãy nêu phép tính và giải thích vì sao em biết?",
+                placeholder: "Nhập phép tính và giải thích...",
+                hint: "Nếu mỗi ngày đều sản xuất cùng một số lượng, em có thể sử dụng phép tính nào để tìm tổng số lượng sau nhiều ngày?",
+                validator: (ans) => {
+                    const text = ans.toLowerCase();
+                    const hasMultiply = text.includes("nhân") || text.includes("x") || text.includes("*") || text.includes("×");
+                    const hasReason = text.includes("mỗi ngày") || text.includes("đều") || text.includes("như nhau") || text.includes("tổng");
+                    return hasMultiply && (hasReason || text.length > 20);
+                }
+            },
+            {
+                id: 3,
+                timestamp: 22, // 00:00:22
+                title: "Nhiệm vụ 3",
+                question: "Tính số khẩu trang nhà máy sản xuất được trong 7 ngày.",
+                placeholder: "Nhập kết quả và phép tính...",
+                hint: "Em hãy thực hiện phép nhân số khẩu trang sản xuất trong một ngày với 7. Chú ý đặt tính thẳng cột và kiểm tra các chữ số nhớ.",
+                validator: (ans) => {
+                    const clean = ans.replace(/\s|\./g, '');
+                    return clean.includes("1120980");
+                }
+            },
+            {
+                id: 4,
+                timestamp: 64, // 00:01:04
+                title: "Nhiệm vụ 4",
+                question: "Hãy rút ra cách thực hiện phép tính sau khi xem video.",
+                placeholder: "Trình bày các bước thực hiện...",
+                hint: "Em hãy nhớ lại cách đặt tính, thứ tự thực hiện phép nhân và cách xử lý khi tích ở một hàng có nhiều hơn một chữ số.",
+                validator: (ans) => {
+                    const text = ans.toLowerCase();
+                    const hasStep1 = text.includes("đặt tính") || text.includes("thẳng") || text.includes("hàng");
+                    const hasStep2 = text.includes("trái") || text.includes("phải") || text.includes("từ phải") || text.includes("nhân");
+                    const hasStep3 = text.includes("nhớ") || text.includes("thừa");
+                    return (hasStep1 && hasStep2) || (hasStep2 && hasStep3) || text.length > 30;
+                }
+            },
+            {
+                id: 5,
+                timestamp: 76, // 00:01:16
+                title: "Nhiệm vụ 5",
+                question: "Nếu mỗi ngày nhà máy sản xuất được 214 325 chiếc khẩu trang. Em hãy giúp các bạn nhỏ tính xem trong 4 ngày, nhà máy đó sản xuất được tổng cộng bao nhiêu sản phẩm?",
+                placeholder: "Nhập phép tính và kết quả...",
+                hint: "Em hãy xác định số khẩu trang sản xuất trong một ngày, sau đó nhân với số ngày. Hãy kiểm tra lại phép tính và kết quả của mình.",
+                validator: (ans) => {
+                    const clean = ans.replace(/\s|\./g, '');
+                    const hasResult = clean.includes("857300");
+                    const hasCalc = clean.includes("214325") || clean.includes("4");
+                    return hasResult || (hasCalc && clean.length >= 6);
+                }
+            }
+        ];
+
+        // State variables
+        let appState = {
+            started: false,
+            currentQuestIndex: 0,
+            answers: {}, 
+            completedQuests: {}, 
+            unlockedQuests: 0
+        };
+
+        // DOM Elements
+        const videoEl = document.getElementById('investigation-video');
+        const startOverlay = document.getElementById('video-start-overlay');
+        const errorOverlay = document.getElementById('video-error-overlay');
+        const btnStartVideo = document.getElementById('btn-start-video');
+        const btnReplayVideo = document.getElementById('btn-replay-video');
+        const btnResetAll = document.getElementById('btn-reset-all');
+        const videoStatusBadge = document.getElementById('video-status-badge');
+        const progressText = document.getElementById('progress-text');
+        const questTabsEl = document.getElementById('quest-tabs');
+        const questionContainer = document.getElementById('question-container');
+        const completionModal = document.getElementById('completion-modal');
+        const btnModalReplay = document.getElementById('btn-modal-replay');
+        const btnModalClose = document.getElementById('btn-modal-close');
+        
+        const resetConfirmModal = document.getElementById('reset-confirm-modal');
+        const btnCancelReset = document.getElementById('btn-cancel-reset');
+        const btnConfirmReset = document.getElementById('btn-confirm-reset');
+
+        const messageModal = document.getElementById('message-modal');
+        const msgTitle = document.getElementById('msg-title');
+        const msgContent = document.getElementById('msg-content');
+        const msgBtnOk = document.getElementById('msg-btn-ok');
+
+        function showCustomAlert(title, text) {
+            msgTitle.textContent = title;
+            msgContent.textContent = text;
+            messageModal.classList.remove('hidden');
+        }
+        msgBtnOk.addEventListener('click', () => {
+            messageModal.classList.add('hidden');
+        });
+
+        // Reset functionality
+        btnResetAll.addEventListener('click', () => {
+            resetConfirmModal.classList.remove('hidden');
+        });
+        btnCancelReset.addEventListener('click', () => {
+            resetConfirmModal.classList.add('hidden');
+        });
+        btnConfirmReset.addEventListener('click', () => {
+            resetConfirmModal.classList.add('hidden');
+            localStorage.removeItem('phong_vien_dieu_tra_state');
+            appState = {
+                started: false,
+                currentQuestIndex: 0,
+                answers: {}, 
+                completedQuests: {}, 
+                unlockedQuests: 0
+            };
+            videoEl.pause();
+            videoEl.currentTime = 0;
+            startOverlay.style.display = 'flex';
+            startOverlay.classList.remove('opacity-0', 'pointer-events-none');
+            videoStatusBadge.textContent = "Chờ bấm bắt đầu";
+            videoStatusBadge.className = "px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold tracking-wider uppercase";
+            renderQuestTabs();
+            renderActiveQuestion();
+            updateProgressUI();
+            showCustomAlert("Đã làm lại", "Sổ tay và tiến độ điều tra đã được làm mới hoàn toàn!");
+        });
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('phong_vien_dieu_tra_state');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    appState = { ...appState, ...parsed };
+                }
+            } catch (e) {
+                console.error("Error loading localStorage:", e);
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem('phong_vien_dieu_tra_state', JSON.stringify(appState));
+            } catch (e) {
+                console.error("Error saving localStorage:", e);
+            }
+        }
+
+        window.onload = function() {
+            loadState();
+            renderQuestTabs();
+            renderActiveQuestion();
+            updateProgressUI();
+
+            videoEl.addEventListener('error', () => {
+                errorOverlay.classList.remove('hidden');
+                startOverlay.classList.add('hidden');
+            });
+        };
+
+        btnStartVideo.addEventListener('click', () => {
+            appState.started = true;
+            startOverlay.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => startOverlay.style.display = 'none', 300);
+            
+            videoEl.play().catch(err => {
+                console.log("Autoplay policy or error:", err);
+                showCustomAlert("Thông báo", "Trình duyệt yêu cầu tương tác thêm. Hãy bấm nút Play trên trình phát video.");
+            });
+            videoStatusBadge.textContent = "Đang điều tra...";
+            videoStatusBadge.className = "px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold tracking-wider uppercase";
+        });
+
+        btnReplayVideo.addEventListener('click', () => {
+            videoEl.currentTime = 0;
+            videoEl.play().catch(e => console.log(e));
+            if (!appState.started) {
+                appState.started = true;
+                startOverlay.style.display = 'none';
+            }
+            videoStatusBadge.textContent = "Đang phát lại...";
+            videoStatusBadge.className = "px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold tracking-wider uppercase";
+        });
+
+        let lastCheckedTime = 0;
+        videoEl.addEventListener('timeupdate', () => {
+            if (!appState.started) return;
+
+            const currentTime = videoEl.currentTime;
+            
+            questionsData.forEach((q, idx) => {
+                if (currentTime >= q.timestamp && lastCheckedTime < q.timestamp) {
+                    if (!appState.completedQuests[idx]) {
+                        videoEl.pause();
+                        videoEl.currentTime = q.timestamp;
+                        
+                        if (appState.currentQuestIndex < idx) {
+                            appState.currentQuestIndex = idx;
+                            if (appState.unlockedQuests < idx) {
+                                appState.unlockedQuests = idx;
+                            }
+                        }
+                        
+                        renderQuestTabs();
+                        renderActiveQuestion();
+                        saveState();
+
+                        showCustomAlert("Mốc điều tra!", `Đã đến mốc quan trọng của ${q.title}! Em hãy hoàn thành câu hỏi trong Sổ tay phóng viên.`);
+                    }
+                }
+            });
+
+            let firstIncomplete = 0;
+            for (let i = 0; i < questionsData.length; i++) {
+                if (!appState.completedQuests[i]) {
+                    firstIncomplete = i;
+                    break;
+                }
+                if (i === questionsData.length - 1 && appState.completedQuests[i]) {
+                    firstIncomplete = questionsData.length;
+                }
+            }
+
+            if (firstIncomplete < questionsData.length) {
+                const targetTime = questionsData[firstIncomplete].timestamp;
+                if (currentTime > targetTime + 0.5 && lastCheckedTime <= targetTime) {
+                    videoEl.currentTime = targetTime;
+                }
+            }
+
+            lastCheckedTime = currentTime;
+        });
+
+        function renderQuestTabs() {
+            questTabsEl.innerHTML = '';
+            questionsData.forEach((q, idx) => {
+                const isCompleted = appState.completedQuests[idx];
+                const isCurrent = appState.currentQuestIndex === idx;
+                const isUnlocked = idx <= appState.unlockedQuests || isCompleted;
+
+                const tab = document.createElement('button');
+                tab.className = `py-2 rounded-xl text-xs font-black transition flex flex-col items-center justify-center gap-0.5 border ${
+                    isCurrent 
+                        ? 'bg-amber-500 text-white border-amber-600 shadow-md' 
+                        : isCompleted 
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300' 
+                            : isUnlocked 
+                                ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100' 
+                                : 'bg-slate-100 text-slate-400 border-slate-200 opacity-60 cursor-not-allowed'
+                }`;
+                
+                tab.innerHTML = `
+                    <span>Q${idx + 1}</span>
+                    <span class="text-[10px]">${isCompleted ? '✓' : isUnlocked ? '🔓' : '🔒'}</span>
+                `;
+
+                tab.addEventListener('click', () => {
+                    if (isUnlocked || isCompleted || idx <= appState.unlockedQuests) {
+                        appState.currentQuestIndex = idx;
+                        renderQuestTabs();
+                        renderActiveQuestion();
+                        videoEl.currentTime = Math.max(0, questionsData[idx].timestamp - 1);
+                    } else {
+                        showCustomAlert("Nhiệm vụ bị khóa", "Em cần hoàn thành các nhiệm vụ trước đó hoặc xem video đến mốc này!");
+                    }
+                });
+
+                questTabsEl.appendChild(tab);
+            });
+        }
+
+        function renderActiveQuestion() {
+            const idx = appState.currentQuestIndex;
+            const q = questionsData[idx];
+            const isCompleted = !!appState.completedQuests[idx];
+            const savedAnswer = appState.answers[idx] || '';
+
+            document.getElementById('current-quest-badge').textContent = `Nhiệm vụ ${idx + 1}/5`;
+
+            questionContainer.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-blue-50/70 border border-blue-100 p-4 rounded-2xl">
+                        <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block mb-1">Mốc thời gian: ${formatTime(q.timestamp)}</span>
+                        <h3 class="font-black text-slate-800 text-base md:text-lg">
+                            ${q.question}
+                        </h3>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            Câu trả lời của phóng viên nhí:
+                        </label>
+                        <textarea 
+                            id="answer-input" 
+                            rows="4" 
+                            class="w-full p-4 rounded-2xl border-2 border-slate-200 focus:border-amber-500 focus:ring focus:ring-amber-200 outline-none transition text-sm font-medium ${isCompleted ? 'bg-slate-100 text-slate-600 cursor-not-allowed' : 'bg-white'}"
+                            placeholder="${q.placeholder}"
+                            ${isCompleted ? 'disabled' : ''}
+                        >${savedAnswer}</textarea>
+                    </div>
+
+                    <div id="feedback-box" class="hidden p-3.5 rounded-xl text-sm font-medium"></div>
+                </div>
+
+                <div class="pt-4 mt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-3">
+                    <button 
+                        id="btn-check-answer" 
+                        class="w-full sm:flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black py-3 px-6 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm ${isCompleted ? 'opacity-50 cursor-not-allowed' : ''}"
+                        ${isCompleted ? 'disabled' : ''}
+                    >
+                        <span>🔍</span> KIỂM TRA
+                    </button>
+                    
+                    <button 
+                        id="btn-continue-video" 
+                        class="w-full sm:flex-1 bg-gradient-to-r from-emerald-500 from-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-black py-3 px-6 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm ${!isCompleted ? 'hidden' : ''}"
+                    >
+                        <span>▶</span> TIẾP TỤC VIDEO
+                    </button>
+                </div>
+            `;
+
+            const btnCheck = document.getElementById('btn-check-answer');
+            const btnContinue = document.getElementById('btn-continue-video');
+            const answerInput = document.getElementById('answer-input');
+            const feedbackBox = document.getElementById('feedback-box');
+
+            if (isCompleted) {
+                feedbackBox.className = "p-3.5 rounded-xl text-sm font-medium bg-emerald-50 border border-emerald-200 text-emerald-800";
+                feedbackBox.innerHTML = "🎉 <b>Chính xác!</b> Em đã hoàn thành nhiệm vụ này và câu trả lời đã được khóa an toàn.";
+                feedbackBox.classList.remove('hidden');
+            }
+
+            answerInput.addEventListener('input', (e) => {
+                appState.answers[idx] = e.target.value;
+                saveState();
+            });
+
+            btnCheck.addEventListener('click', () => {
+                const userAns = answerInput.value.trim();
+                if (!userAns) {
+                    showCustomAlert("Chưa nhập câu trả lời", "Em hãy viết câu trả lời hoặc phép tính vào ô trống nhé!");
+                    return;
+                }
+
+                const isValid = q.validator(userAns);
+                if (isValid) {
+                    appState.completedQuests[idx] = true;
+                    if (idx + 1 > appState.unlockedQuests && idx + 1 < questionsData.length) {
+                        appState.unlockedQuests = idx + 1;
+                    }
+                    saveState();
+
+                    feedbackBox.className = "p-3.5 rounded-xl text-sm font-medium bg-emerald-50 border border-emerald-200 text-emerald-800";
+                    feedbackBox.innerHTML = "🎉 Chính xác! Em đã hoàn thành nhiệm vụ!";
+                    feedbackBox.classList.remove('hidden');
+
+                    answerInput.disabled = true;
+                    answerInput.className = "w-full p-4 rounded-2xl border-2 border-slate-200 bg-slate-100 text-slate-600 cursor-not-allowed text-sm font-medium";
+                    btnCheck.disabled = true;
+                    btnCheck.classList.add('opacity-50', 'cursor-not-allowed');
+                    btnContinue.classList.remove('hidden');
+
+                    renderQuestTabs();
+                    updateProgressUI();
+                    checkAllCompleted();
+                } else {
+                    feedbackBox.className = "p-3.5 rounded-xl text-sm font-medium bg-amber-50 border border-amber-200 text-amber-800";
+                    feedbackBox.innerHTML = `⚠️ <b>Chưa chính xác rồi!</b> Em hãy suy nghĩ thêm nhé!<br><span class="text-xs text-amber-700 mt-1 block font-bold">💡 Gợi ý: ${q.hint}</span>`;
+                    feedbackBox.classList.remove('hidden');
+                }
+            });
+
+            btnContinue.addEventListener('click', () => {
+                if (idx < questionsData.length - 1) {
+                    appState.currentQuestIndex = idx + 1;
+                    renderQuestTabs();
+                    renderActiveQuestion();
+                }
+
+                videoEl.play().catch(e => console.log(e));
+                videoStatusBadge.textContent = "Đang điều tra...";
+                videoStatusBadge.className = "px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold tracking-wider uppercase";
+            });
+        }
+
+        function updateProgressUI() {
+            const completedCount = Object.keys(appState.completedQuests).length;
+            progressText.textContent = `${completedCount} / 5 Nhiệm vụ`;
+        }
+
+        function checkAllCompleted() {
+            const completedCount = Object.keys(appState.completedQuests).length;
+            if (completedCount === questionsData.length) {
+                setTimeout(() => {
+                    completionModal.classList.remove('hidden');
+                    if (typeof confetti === 'function') {
+                        confetti({
+                            particleCount: 120,
+                            spread: 70,
+                            origin: { y: 0.6 }
+                        });
+                    }
+                }, 600);
+            }
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+        }
+
+        btnModalClose.addEventListener('click', () => {
+            completionModal.classList.add('hidden');
+        });
+
+        btnModalReplay.addEventListener('click', () => {
+            completionModal.classList.add('hidden');
+            videoEl.currentTime = 0;
+            videoEl.play().catch(e => console.log(e));
+            videoStatusBadge.textContent = "Đang phát lại...";
+            videoStatusBadge.className = "px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold tracking-wider uppercase";
+        });
+    </script>
+</body>
+</html>
